@@ -1,0 +1,73 @@
+package jsparser
+
+import (
+// "io"
+)
+
+// scanned token
+type Token struct {
+	Kind     TokenKind
+	Location Cursor
+	Value   string
+}
+
+type TokenKind int
+
+const (
+	TOKEN_UNKNOWN TokenKind = iota
+	TOKEN_DELIMITER
+	TOKEN_OPERATOR
+	TOKEN_ATOM
+	TOKEN_NUMBER
+	TOKEN_STRING
+	TOKEN_COMMENT
+	TOKEN_NEWLINE
+
+	_TOKEN_HIDDEN_START
+	_TOKEN_SPACE
+	_TOKEN_ONE_SLASH
+	_TOKEN_COMMENT_SINGLE_LINE
+	_TOKEN_COMMENT_MULTI_LINE
+	_TOKEN_COMMENT_MULTI_LINE_MAY_END
+	_TOKEN_STRING_SINGLE_QUOTE
+	_TOKEN_STRING_DOUBLE_QUOTE
+)
+
+func (self TokenKind) String() string {
+	switch self {
+
+	case TOKEN_UNKNOWN:
+		return "TOKEN_UNKNOWN"
+	case TOKEN_DELIMITER:
+		return "TOKEN_DELIMITER"
+	case TOKEN_OPERATOR:
+		return "TOKEN_OPERATOR"
+	case TOKEN_ATOM:
+		return "TOKEN_ATOM"
+	case TOKEN_NUMBER:
+		return "TOKEN_NUMBER"
+	case TOKEN_STRING:
+		return "TOKEN_STRING"
+	case TOKEN_COMMENT:
+		return "TOKEN_COMMENT"
+	case TOKEN_NEWLINE:
+		return "TOKEN_NEWLINE"
+
+	case _TOKEN_SPACE:
+		return "_TOKEN_SPACE"
+	case _TOKEN_ONE_SLASH:
+		return "_TOKEN_ONE_SLASH"
+	case _TOKEN_COMMENT_SINGLE_LINE:
+		return "_TOKEN_COMMENT_SINGLE_LINE"
+	case _TOKEN_COMMENT_MULTI_LINE:
+		return "_TOKEN_COMMENT_MULTI_LINE"
+	case _TOKEN_COMMENT_MULTI_LINE_MAY_END:
+		return "_TOKEN_COMMENT_MULTI_LINE_MAY_END"
+	case _TOKEN_STRING_SINGLE_QUOTE:
+		return "_TOKEN_STRING_SINGLE_QUOTE"
+	case _TOKEN_STRING_DOUBLE_QUOTE:
+		return "_TOKEN_STRING_DOUBLE_QUOTE"
+
+	}
+	return "<#error: bad value>"
+}

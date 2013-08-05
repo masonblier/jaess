@@ -1,0 +1,481 @@
+{
+    "type": "Program",
+    "body": [
+        {
+            "type": "FunctionDeclaration",
+            "id": {
+                "type": "Identifier",
+                "name": "Shape"
+            },
+            "params": [],
+            "defaults": [],
+            "body": {
+                "type": "BlockStatement",
+                "body": [
+                    {
+                        "type": "ExpressionStatement",
+                        "expression": {
+                            "type": "AssignmentExpression",
+                            "operator": "=",
+                            "left": {
+                                "type": "MemberExpression",
+                                "computed": false,
+                                "object": {
+                                    "type": "ThisExpression"
+                                },
+                                "property": {
+                                    "type": "Identifier",
+                                    "name": "x"
+                                }
+                            },
+                            "right": {
+                                "type": "UnaryExpression",
+                                "operator": "-",
+                                "argument": {
+                                    "type": "Literal",
+                                    "value": 1,
+                                    "raw": "1"
+                                },
+                                "prefix": true
+                            }
+                        }
+                    },
+                    {
+                        "type": "ExpressionStatement",
+                        "expression": {
+                            "type": "AssignmentExpression",
+                            "operator": "=",
+                            "left": {
+                                "type": "MemberExpression",
+                                "computed": false,
+                                "object": {
+                                    "type": "ThisExpression"
+                                },
+                                "property": {
+                                    "type": "Identifier",
+                                    "name": "y"
+                                }
+                            },
+                            "right": {
+                                "type": "Literal",
+                                "value": 5,
+                                "raw": "5"
+                            }
+                        }
+                    }
+                ]
+            },
+            "rest": null,
+            "generator": false,
+            "expression": false
+        },
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "AssignmentExpression",
+                "operator": "=",
+                "left": {
+                    "type": "MemberExpression",
+                    "computed": false,
+                    "object": {
+                        "type": "MemberExpression",
+                        "computed": false,
+                        "object": {
+                            "type": "Identifier",
+                            "name": "Shape"
+                        },
+                        "property": {
+                            "type": "Identifier",
+                            "name": "prototype"
+                        }
+                    },
+                    "property": {
+                        "type": "Identifier",
+                        "name": "move"
+                    }
+                },
+                "right": {
+                    "type": "FunctionExpression",
+                    "id": null,
+                    "params": [
+                        {
+                            "type": "Identifier",
+                            "name": "x"
+                        },
+                        {
+                            "type": "Identifier",
+                            "name": "y"
+                        }
+                    ],
+                    "defaults": [],
+                    "body": {
+                        "type": "BlockStatement",
+                        "body": [
+                            {
+                                "type": "ExpressionStatement",
+                                "expression": {
+                                    "type": "AssignmentExpression",
+                                    "operator": "+=",
+                                    "left": {
+                                        "type": "MemberExpression",
+                                        "computed": false,
+                                        "object": {
+                                            "type": "ThisExpression"
+                                        },
+                                        "property": {
+                                            "type": "Identifier",
+                                            "name": "x"
+                                        }
+                                    },
+                                    "right": {
+                                        "type": "Identifier",
+                                        "name": "x"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "ExpressionStatement",
+                                "expression": {
+                                    "type": "AssignmentExpression",
+                                    "operator": "+=",
+                                    "left": {
+                                        "type": "MemberExpression",
+                                        "computed": false,
+                                        "object": {
+                                            "type": "ThisExpression"
+                                        },
+                                        "property": {
+                                            "type": "Identifier",
+                                            "name": "y"
+                                        }
+                                    },
+                                    "right": {
+                                        "type": "Identifier",
+                                        "name": "y"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "ExpressionStatement",
+                                "expression": {
+                                    "type": "CallExpression",
+                                    "callee": {
+                                        "type": "MemberExpression",
+                                        "computed": false,
+                                        "object": {
+                                            "type": "Identifier",
+                                            "name": "console"
+                                        },
+                                        "property": {
+                                            "type": "Identifier",
+                                            "name": "info"
+                                        }
+                                    },
+                                    "arguments": [
+                                        {
+                                            "type": "Literal",
+                                            "value": "Shape moved.",
+                                            "raw": "\"Shape moved.\""
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "rest": null,
+                    "generator": false,
+                    "expression": false
+                }
+            }
+        },
+        {
+            "type": "FunctionDeclaration",
+            "id": {
+                "type": "Identifier",
+                "name": "Rectangle"
+            },
+            "params": [],
+            "defaults": [],
+            "body": {
+                "type": "BlockStatement",
+                "body": [
+                    {
+                        "type": "ExpressionStatement",
+                        "expression": {
+                            "type": "CallExpression",
+                            "callee": {
+                                "type": "MemberExpression",
+                                "computed": false,
+                                "object": {
+                                    "type": "Identifier",
+                                    "name": "Shape"
+                                },
+                                "property": {
+                                    "type": "Identifier",
+                                    "name": "call"
+                                }
+                            },
+                            "arguments": [
+                                {
+                                    "type": "ThisExpression"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "rest": null,
+            "generator": false,
+            "expression": false
+        },
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "AssignmentExpression",
+                "operator": "=",
+                "left": {
+                    "type": "MemberExpression",
+                    "computed": false,
+                    "object": {
+                        "type": "Identifier",
+                        "name": "Rectangle"
+                    },
+                    "property": {
+                        "type": "Identifier",
+                        "name": "prototype"
+                    }
+                },
+                "right": {
+                    "type": "CallExpression",
+                    "callee": {
+                        "type": "MemberExpression",
+                        "computed": false,
+                        "object": {
+                            "type": "Identifier",
+                            "name": "Object"
+                        },
+                        "property": {
+                            "type": "Identifier",
+                            "name": "create"
+                        }
+                    },
+                    "arguments": [
+                        {
+                            "type": "MemberExpression",
+                            "computed": false,
+                            "object": {
+                                "type": "Identifier",
+                                "name": "Shape"
+                            },
+                            "property": {
+                                "type": "Identifier",
+                                "name": "prototype"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "AssignmentExpression",
+                "operator": "=",
+                "left": {
+                    "type": "MemberExpression",
+                    "computed": false,
+                    "object": {
+                        "type": "MemberExpression",
+                        "computed": false,
+                        "object": {
+                            "type": "Identifier",
+                            "name": "Rectangle"
+                        },
+                        "property": {
+                            "type": "Identifier",
+                            "name": "prototype"
+                        }
+                    },
+                    "property": {
+                        "type": "Identifier",
+                        "name": "constructor"
+                    }
+                },
+                "right": {
+                    "type": "Identifier",
+                    "name": "Rectangle"
+                }
+            }
+        },
+        {
+            "type": "VariableDeclaration",
+            "declarations": [
+                {
+                    "type": "VariableDeclarator",
+                    "id": {
+                        "type": "Identifier",
+                        "name": "rect"
+                    },
+                    "init": {
+                        "type": "NewExpression",
+                        "callee": {
+                            "type": "Identifier",
+                            "name": "Rectangle"
+                        },
+                        "arguments": []
+                    }
+                }
+            ],
+            "kind": "var"
+        },
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "CallExpression",
+                "callee": {
+                    "type": "Identifier",
+                    "name": "assert"
+                },
+                "arguments": [
+                    {
+                        "type": "BinaryExpression",
+                        "operator": "instanceof",
+                        "left": {
+                            "type": "Identifier",
+                            "name": "rect"
+                        },
+                        "right": {
+                            "type": "Identifier",
+                            "name": "Rectangle"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "CallExpression",
+                "callee": {
+                    "type": "Identifier",
+                    "name": "assert"
+                },
+                "arguments": [
+                    {
+                        "type": "BinaryExpression",
+                        "operator": "instanceof",
+                        "left": {
+                            "type": "Identifier",
+                            "name": "rect"
+                        },
+                        "right": {
+                            "type": "Identifier",
+                            "name": "Shape"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "CallExpression",
+                "callee": {
+                    "type": "MemberExpression",
+                    "computed": false,
+                    "object": {
+                        "type": "Identifier",
+                        "name": "rect"
+                    },
+                    "property": {
+                        "type": "Identifier",
+                        "name": "move"
+                    }
+                },
+                "arguments": [
+                    {
+                        "type": "Literal",
+                        "value": 3,
+                        "raw": "3"
+                    },
+                    {
+                        "type": "UnaryExpression",
+                        "operator": "-",
+                        "argument": {
+                            "type": "Literal",
+                            "value": 4,
+                            "raw": "4"
+                        },
+                        "prefix": true
+                    }
+                ]
+            }
+        },
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "CallExpression",
+                "callee": {
+                    "type": "Identifier",
+                    "name": "assert"
+                },
+                "arguments": [
+                    {
+                        "type": "BinaryExpression",
+                        "operator": "===",
+                        "left": {
+                            "type": "MemberExpression",
+                            "computed": false,
+                            "object": {
+                                "type": "Identifier",
+                                "name": "rect"
+                            },
+                            "property": {
+                                "type": "Identifier",
+                                "name": "x"
+                            }
+                        },
+                        "right": {
+                            "type": "Literal",
+                            "value": 2,
+                            "raw": "2"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "CallExpression",
+                "callee": {
+                    "type": "Identifier",
+                    "name": "assert"
+                },
+                "arguments": [
+                    {
+                        "type": "BinaryExpression",
+                        "operator": "===",
+                        "left": {
+                            "type": "MemberExpression",
+                            "computed": false,
+                            "object": {
+                                "type": "Identifier",
+                                "name": "rect"
+                            },
+                            "property": {
+                                "type": "Identifier",
+                                "name": "x"
+                            }
+                        },
+                        "right": {
+                            "type": "Literal",
+                            "value": 1,
+                            "raw": "1"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
