@@ -9,7 +9,7 @@ import (
 )
 
 func TestBasicScanning(raw_t *testing.T) {
-	t := EemtoTest{raw_t}
+	t := NewTestWrapper(raw_t)
 
 	test_source := "anatøm + 1.20"
 	// fmt.Printf("\x1b[96m-- lexing ----\n%s\n--------------\x1b[0m\n", test_source)
@@ -36,7 +36,7 @@ func TestBasicScanning(raw_t *testing.T) {
 }
 
 func TestMultilineWithComments(raw_t *testing.T) {
-	t := EemtoTest{raw_t}
+	t := NewTestWrapper(raw_t)
 
 	test_source := "can + /* it \nhandle */ // maybe\n{ \"this\" } \nasdf"
 	tokens := make([]Token, 10)
@@ -71,9 +71,8 @@ func TestMultilineWithComments(raw_t *testing.T) {
 	t.Assert(token == nil, "scanner emitting excessive symbols")
 }
 
-
 func TestAgainstShapeObjects(raw_t *testing.T) {
-	t := EemtoTest{raw_t}
+	t := NewTestWrapper(raw_t)
 
 	source, err := os.Open("fixtures/shape-objects.js")
 	if !t.AssertNoError(err) {

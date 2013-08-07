@@ -8,7 +8,7 @@ import (
 type Token struct {
 	Kind     TokenKind
 	Location Cursor
-	Value   string
+	Value    string
 }
 
 type TokenKind int
@@ -23,7 +23,7 @@ const (
 	TOKEN_COMMENT
 	TOKEN_NEWLINE
 
-	_TOKEN_HIDDEN_START
+	_TOKEN_HIDDEN
 	_TOKEN_SPACE
 	_TOKEN_ONE_SLASH
 	_TOKEN_COMMENT_SINGLE_LINE

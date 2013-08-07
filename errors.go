@@ -2,51 +2,45 @@ package jsparser
 
 import (
 	"fmt"
-	"reflect"
-	"testing"
 )
 
-// scanner errors
+// input stream errors
 type SyntaxError struct {
 	Message  string
 	Location Cursor
 }
 
-func NewSyntaxError(message string) *SyntaxError {
-	err := new(SyntaxError)
-	err.Message = message
-	return err
-}
-
-func (self *SyntaxError) Error() string {
+func (self SyntaxError) Error() string {
 	return fmt.Sprintf("%s at %+v", self.Message, self.Location)
 }
 
-// testing error checking
-type EemtoTest struct {
-	t *testing.T
+// scanner errors
+type ScannerError struct {
+	Message string
 }
 
-func (self *EemtoTest) AssertNoError(err error) bool {
-	if err != nil {
-		self.t.Error(err)
-		return false
-	}
-	return true
+func (self ScannerError) Error() string {
+	return self.Message
 }
 
-func (self *EemtoTest) Assert(condition bool, message string, args ...interface{}) bool {
-	if !condition {
-		self.t.Errorf(message, args...)
-		return false
-	}
-	return true
+// parser errors
+type ParseError struct {
+	Message  string
+	Location Cursor
 }
 
-func (self *EemtoTest) AssertEqual(expected interface{}, actual interface{}) bool {
-	if !reflect.DeepEqual(expected, actual) {
-		self.t.Errorf("expected %v, actual %v", expected, actual)
-		return false
-	}
-	return true
+func NewParseError(message string, args ...interface{}) *ParseError {
+  err := new(ParseError)
+  fmsg := fmt.Sprintf(message, args...)
+  err.Message = fmt.Sprintf("\x1b[91m= %s\x1b[0m", fmsg)
+  return err
+}
+
+func (self ParseError) SetLocation(location Cursor) ParseError {
+  self.Location = location
+  return self
+}
+
+func (self ParseError) Error() string {
+	return fmt.Sprintf("%s at %+v", self.Message, self.Location)
 }

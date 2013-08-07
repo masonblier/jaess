@@ -23,7 +23,7 @@ func IsDelimeterRune(r rune) bool {
 // contiguous operator runes emit one token
 func IsOperatorRune(r rune) bool {
 	switch r {
-	case '<', '>', '+', '-', '*', '/', '%', '=', '&', '|', '^', '!', '~', '?', ':','.':
+	case '<', '>', '+', '-', '*', '/', '%', '=', '&', '|', '^', '!', '~', '?', ':', '.':
 		return true
 	}
 	return false

@@ -7,14 +7,11 @@ import (
 
 // a scanner of tokens
 type TokenScanner struct {
-	input io.RuneScanner
-	state _ScannerState
-}
-
-// internal state of the scanner
-type _ScannerState struct {
-	offset   int64
-	Location Cursor
+	input     io.RuneScanner
+	offset    int64
+	Location  Cursor
+	lastToken *Token
+	unToken   *Token
 }
 
 // location within the source input
@@ -23,17 +20,17 @@ type Cursor struct {
 	column int
 }
 
-// creates a new token scanner with default state
+// creates a new token scanner
 func NewTokenScanner(input io.RuneScanner) *TokenScanner {
-	return &TokenScanner{input, _ScannerState{0, Cursor{0, 0}}}
+	return &TokenScanner{input, 0, Cursor{0, 0}, nil, nil}
 }
 
-func (self *_ScannerState) _IncrementCursor(r rune) {
+func (self *Cursor) _IncrementByRune(r rune) {
 	if r == '\n' {
-		self.Location.line += 1
-		self.Location.column = 0
+		self.line += 1
+		self.column = 0
 	} else {
-		self.Location.column += 1
+		self.column += 1
 	}
 }
 
@@ -42,6 +39,14 @@ func (self *_ScannerState) _IncrementCursor(r rune) {
 func (self *TokenScanner) Next() (*Token, error) {
 	var token *Token
 
+	// check undo cache
+	if self.unToken != nil {
+		token = self.unToken
+		self.unToken = nil
+		return token, nil
+	}
+
+	// scan
 	for {
 		r, rlen, err := self.input.ReadRune()
 		if err != nil {
@@ -53,16 +58,16 @@ func (self *TokenScanner) Next() (*Token, error) {
 
 		if token == nil {
 			token = new(Token)
-			token.Location = self.state.Location
+			token.Location = self.Location
 		}
 
 		if ok, err := token.ConsumeRune(r); ok {
-			self.state.offset += int64(rlen)
-			self.state._IncrementCursor(r)
+			self.offset += int64(rlen)
+			self.Location._IncrementByRune(r)
 		} else {
 			self.input.UnreadRune()
 			if err != nil {
-				err.Location = self.state.Location
+				err.Location = self.Location
 				return nil, err
 			}
 			if _TOKEN_SPACE == token.Kind {
@@ -78,16 +83,40 @@ func (self *TokenScanner) Next() (*Token, error) {
 		token.Kind = TOKEN_COMMENT
 	}
 
-	if token != nil && token.Kind >= _TOKEN_HIDDEN_START {
+	// check for internal enums
+	if token != nil && token.Kind >= _TOKEN_HIDDEN {
 		if token.Kind == _TOKEN_COMMENT_MULTI_LINE ||
 			token.Kind == _TOKEN_COMMENT_MULTI_LINE_MAY_END {
 			return nil, &SyntaxError{"incomplete multiline comment", token.Location}
 		} else {
-			return nil, &SyntaxError{"unexpected eof", self.state.Location}
+			return nil, &SyntaxError{"unexpected eof", self.Location}
 		}
 	}
 
+	// cache last token
+	self.lastToken = token
 	return token, nil
+}
+
+// moves the scanner back one. cannot go back more than one.
+func (self *TokenScanner) UnNext() error {
+	if self.unToken != nil {
+		return ScannerError{"consecutive UnNext calls unsupported, must call Next between each"}
+	}
+	self.unToken = self.lastToken
+	return nil
+}
+
+// peeks at the next value. cannot call UnNext after peeking.
+func (self *TokenScanner) Peek() (*Token, error) {
+	if self.unToken == nil {
+		var err error
+		self.unToken, err = self.Next()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return self.unToken, nil
 }
 
 // reads the run into the token
@@ -118,7 +147,7 @@ func (self *Token) ConsumeRune(r rune) (bool, *SyntaxError) {
 		case IsDigitRune(r):
 			self.Kind = TOKEN_NUMBER
 		default:
-			return false, NewSyntaxError(fmt.Sprintf("Invalid Rune %c", r))
+			return false, &SyntaxError{fmt.Sprintf("Invalid Rune %c", r), Cursor{-1, -1}}
 		}
 		self.Value += string(r)
 		return true, nil

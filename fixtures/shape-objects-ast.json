@@ -465,7 +465,7 @@
                             },
                             "property": {
                                 "type": "Identifier",
-                                "name": "x"
+                                "name": "y"
                             }
                         },
                         "right": {

@@ -1,17 +1,53 @@
 package jsparser
 
 import (
-  "fmt"
-  "testing"
+	"bytes"
+	"encoding/json"
+	"testing"
+  "os"
+  "bufio"
 )
 
-func TestParse(raw_t *testing.T) {
-  t := EemtoTest{raw_t}
+func TestBasicParse(raw_t *testing.T) {
+	t := NewTestWrapper(raw_t)
 
-  test_source := "anatøm + 1.20"
-  // fmt.Printf("\x1b[96m-- lexing ----\n%s\n--------------\x1b[0m\n", test_source)
+	test_source := "anatøm + 1.20"
   ast, err := parse(test_source)
   t.AssertNoError(err)
 
-  fmt.Printf("\x1b[93m-- ast ----\n%+v\n--------------\x1b[0m\n", ast)
+  actual_ast := _MarshalAndIndentJsonBufioReader(t, ast)
+  expected_ast := t.ReadFile("fixtures/basic-parse-ast.json")
+
+  t.AssertEqualLines(expected_ast, actual_ast)
+}
+
+func TestParseShapeObjects(raw_t *testing.T) {
+  t := NewTestWrapper(raw_t)
+  // t.Trace = true
+
+  test_input, err := os.Open("fixtures/shape-objects.js")
+  test_source := bufio.NewReader(test_input)
+  t.AssertNoError(err)
+
+  ast, err := NewParser(test_source).Parse()
+  if !t.AssertNoError(err) {
+    return
+  }
+
+  actual_ast := _MarshalAndIndentJsonBufioReader(t, ast)
+  expected_ast := t.ReadFile("fixtures/shape-objects-ast.json")
+
+  t.AssertEqualLines(expected_ast, actual_ast)
+}
+
+
+func _MarshalAndIndentJsonBufioReader(t *TestWrapper, ast AstNode) *bufio.Reader {
+    jsonStr, err := json.Marshal(ast)
+    t.AssertNoError(err)
+
+    var dst bytes.Buffer
+    err = json.Indent(&dst, jsonStr, "", "    ")
+    t.AssertNoError(err)
+
+    return bufio.NewReader(&dst)
 }

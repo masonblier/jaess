@@ -1,0 +1,21 @@
+{
+    "type": "Program",
+    "body": [
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "BinaryExpression",
+                "operator": "+",
+                "left": {
+                    "type": "Identifier",
+                    "name": "anatøm"
+                },
+                "right": {
+                    "type": "Literal",
+                    "value": 1.2,
+                    "raw": "1.20"
+                }
+            }
+        }
+    ]
+}

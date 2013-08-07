@@ -24,10 +24,10 @@ Rectangle.prototype.constructor = Rectangle;
 
 var rect = new Rectangle();
 
-assert(rect instanceof Rectangle)
-assert(rect instanceof Shape)
+assert(rect instanceof Rectangle);
+assert(rect instanceof Shape);
 
 rect.move(3, -4);
 
 assert(rect.x === 2);
-assert(rect.x === 1);
+assert(rect.y === 1);
