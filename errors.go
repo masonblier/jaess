@@ -30,15 +30,15 @@ type ParseError struct {
 }
 
 func NewParseError(message string, args ...interface{}) *ParseError {
-  err := new(ParseError)
-  fmsg := fmt.Sprintf(message, args...)
-  err.Message = fmt.Sprintf("\x1b[91m= %s\x1b[0m", fmsg)
-  return err
+	err := new(ParseError)
+	fmsg := fmt.Sprintf(message, args...)
+	err.Message = fmt.Sprintf("\x1b[91m= %s\x1b[0m", fmsg)
+	return err
 }
 
 func (self ParseError) SetLocation(location Cursor) ParseError {
-  self.Location = location
-  return self
+	self.Location = location
+	return self
 }
 
 func (self ParseError) Error() string {

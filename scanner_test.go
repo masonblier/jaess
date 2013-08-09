@@ -21,17 +21,17 @@ func TestBasicScanning(raw_t *testing.T) {
 
 	token, err = scanner.Next()
 	t.AssertNoError(err)
-	t.AssertEqual(Token{TOKEN_ATOM, Cursor{0, 0}, "anatøm"}, *token)
+	t.AssertEqual(Token{ATOM, Cursor{0, 0}, "anatøm"}, *token)
 	// fmt.Printf("\x1b[90m%+v\x1b[0m\n", token)
 
 	token, err = scanner.Next()
 	t.AssertNoError(err)
-	t.AssertEqual(Token{TOKEN_OPERATOR, Cursor{0, 7}, "+"}, *token)
+	t.AssertEqual(Token{OPERATOR, Cursor{0, 7}, "+"}, *token)
 	// fmt.Printf("\x1b[90m%+v\x1b[0m\n", token)
 
 	token, err = scanner.Next()
 	t.AssertNoError(err)
-	t.AssertEqual(Token{TOKEN_NUMBER, Cursor{0, 9}, "1.20"}, *token)
+	t.AssertEqual(Token{NUMBER, Cursor{0, 9}, "1.20"}, *token)
 	// fmt.Printf("\x1b[90m%+v\x1b[0m\n", token)
 }
 
@@ -40,16 +40,16 @@ func TestMultilineWithComments(raw_t *testing.T) {
 
 	test_source := "can + /* it \nhandle */ // maybe\n{ \"this\" } \nasdf"
 	tokens := make([]Token, 10)
-	tokens[0] = Token{TOKEN_ATOM, Cursor{0, 0}, "can"}
-	tokens[1] = Token{TOKEN_OPERATOR, Cursor{0, 4}, "+"}
-	tokens[2] = Token{TOKEN_COMMENT, Cursor{0, 6}, "/* it \nhandle */"}
-	tokens[3] = Token{TOKEN_COMMENT, Cursor{1, 10}, "// maybe"}
-	tokens[4] = Token{TOKEN_NEWLINE, Cursor{1, 18}, "\n"}
-	tokens[5] = Token{TOKEN_DELIMITER, Cursor{2, 0}, "{"}
-	tokens[6] = Token{TOKEN_STRING, Cursor{2, 2}, "\"this\""}
-	tokens[7] = Token{TOKEN_DELIMITER, Cursor{2, 9}, "}"}
-	tokens[8] = Token{TOKEN_NEWLINE, Cursor{2, 11}, "\n"}
-	tokens[9] = Token{TOKEN_ATOM, Cursor{3, 0}, "asdf"}
+	tokens[0] = Token{ATOM, Cursor{0, 0}, "can"}
+	tokens[1] = Token{OPERATOR, Cursor{0, 4}, "+"}
+	tokens[2] = Token{COMMENT, Cursor{0, 6}, "/* it \nhandle */"}
+	tokens[3] = Token{COMMENT, Cursor{1, 10}, "// maybe"}
+	tokens[4] = Token{NEWLINE, Cursor{1, 18}, "\n"}
+	tokens[5] = Token{DELIMITER, Cursor{2, 0}, "{"}
+	tokens[6] = Token{STRING, Cursor{2, 2}, "\"this\""}
+	tokens[7] = Token{DELIMITER, Cursor{2, 9}, "}"}
+	tokens[8] = Token{NEWLINE, Cursor{2, 11}, "\n"}
+	tokens[9] = Token{ATOM, Cursor{3, 0}, "asdf"}
 
 	// fmt.Printf("\x1b[96m-- expected tokens ----\n%v\n--------------\x1b[0m\n", tokens)
 	// fmt.Printf("\x1b[96m-- lexing ----\n%s\n--------------\x1b[0m\n", test_source)
@@ -80,10 +80,10 @@ func TestAgainstShapeObjects(raw_t *testing.T) {
 	}
 
 	tokens := make([]Token, 3)
-	tokens[0] = Token{TOKEN_COMMENT, Cursor{0, 0}, "// @src https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create"}
-	tokens[1] = Token{TOKEN_NEWLINE, Cursor{0, 102}, "\n"}
+	tokens[0] = Token{COMMENT, Cursor{0, 0}, "// @src https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create"}
+	tokens[1] = Token{NEWLINE, Cursor{0, 102}, "\n"}
 	// todo fix: don't emit newlines for blank lines
-	tokens[2] = Token{TOKEN_NEWLINE, Cursor{1, 0}, "\n"}
+	tokens[2] = Token{NEWLINE, Cursor{1, 0}, "\n"}
 
 	inputReader := bufio.NewReader(source)
 	scanner := NewTokenScanner(inputReader)

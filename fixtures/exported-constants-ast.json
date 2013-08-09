@@ -1,0 +1,68 @@
+{
+    "type": "Program",
+    "body": [
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "AssignmentExpression",
+                "operator": "=",
+                "left": {
+                    "type": "MemberExpression",
+                    "computed": false,
+                    "object": {
+                        "type": "Identifier",
+                        "name": "module"
+                    },
+                    "property": {
+                        "type": "Identifier",
+                        "name": "exports"
+                    }
+                },
+                "right": {
+                    "type": "ObjectExpression",
+                    "properties": [
+                        {
+                            "type": "Property",
+                            "key": {
+                                "type": "Identifier",
+                                "name": "E"
+                            },
+                            "value": {
+                                "type": "Literal",
+                                "value": 2.718281828459045,
+                                "raw": "2.718281828459045"
+                            },
+                            "kind": "init"
+                        },
+                        {
+                            "type": "Property",
+                            "key": {
+                                "type": "Identifier",
+                                "name": "Pi"
+                            },
+                            "value": {
+                                "type": "Literal",
+                                "value": 3.141592653589793,
+                                "raw": "3.141592653589793"
+                            },
+                            "kind": "init"
+                        },
+                        {
+                            "type": "Property",
+                            "key": {
+                                "type": "Identifier",
+                                "name": "Phi"
+                            },
+                            "value": {
+                                "type": "Literal",
+                                "value": 1.618033988749895,
+                                "raw": "1.618033988749895"
+                            },
+                            "kind": "init"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

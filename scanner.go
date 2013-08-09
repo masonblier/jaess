@@ -12,6 +12,7 @@ type TokenScanner struct {
 	Location  Cursor
 	lastToken *Token
 	unToken   *Token
+	Trace     bool
 }
 
 // location within the source input
@@ -22,7 +23,7 @@ type Cursor struct {
 
 // creates a new token scanner
 func NewTokenScanner(input io.RuneScanner) *TokenScanner {
-	return &TokenScanner{input, 0, Cursor{0, 0}, nil, nil}
+	return &TokenScanner{input, 0, Cursor{0, 0}, nil, nil, false}
 }
 
 func (self *Cursor) _IncrementByRune(r rune) {
@@ -70,7 +71,7 @@ func (self *TokenScanner) Next() (*Token, error) {
 				err.Location = self.Location
 				return nil, err
 			}
-			if _TOKEN_SPACE == token.Kind {
+			if _SPACE == token.Type {
 				token = nil
 			} else {
 				break
@@ -79,18 +80,22 @@ func (self *TokenScanner) Next() (*Token, error) {
 	}
 
 	// hack to correct type of single line comment at eof
-	if token != nil && _TOKEN_COMMENT_SINGLE_LINE == token.Kind {
-		token.Kind = TOKEN_COMMENT
+	if token != nil && _COMMENT_SINGLE_LINE == token.Type {
+		token.Type = COMMENT
 	}
 
 	// check for internal enums
-	if token != nil && token.Kind >= _TOKEN_HIDDEN {
-		if token.Kind == _TOKEN_COMMENT_MULTI_LINE ||
-			token.Kind == _TOKEN_COMMENT_MULTI_LINE_MAY_END {
+	if token != nil && token.Type >= _HIDDEN {
+		if token.Type == _COMMENT_MULTI_LINE ||
+			token.Type == _COMMENT_MULTI_LINE_MAY_END {
 			return nil, &SyntaxError{"incomplete multiline comment", token.Location}
 		} else {
 			return nil, &SyntaxError{"unexpected eof", self.Location}
 		}
+	}
+
+	if self.Trace {
+		fmt.Printf("\x1b[90m%v\x1b[0m\n", token)
 	}
 
 	// cache last token
@@ -123,29 +128,29 @@ func (self *TokenScanner) Peek() (*Token, error) {
 // returning true if rune is accepted, false if rune is rejected
 // error is nil unless a syntax error is detected
 func (self *Token) ConsumeRune(r rune) (bool, *SyntaxError) {
-	switch self.Kind {
+	switch self.Type {
 
 	// stage 1: lexical identification
 	case TOKEN_UNKNOWN:
 		switch {
 		case IsInlineWhitespaceRune(r):
-			self.Kind = _TOKEN_SPACE
+			self.Type = _SPACE
 		case '\n' == r:
-			self.Kind = TOKEN_NEWLINE
+			self.Type = NEWLINE
 		// case '\'' == r:
-		// 	self.Kind = _TOKEN_STRING_SINGLE_QUOTE
+		// 	self.Type = _STRING_SINGLE_QUOTE
 		case '"' == r:
-			self.Kind = _TOKEN_STRING_DOUBLE_QUOTE
+			self.Type = _STRING_DOUBLE_QUOTE
 		case '/' == r:
-			self.Kind = _TOKEN_ONE_SLASH
+			self.Type = _ONE_SLASH
 		case IsDelimeterRune(r):
-			self.Kind = TOKEN_DELIMITER
+			self.Type = DELIMITER
 		case IsOperatorRune(r):
-			self.Kind = TOKEN_OPERATOR
+			self.Type = OPERATOR
 		case IsAtomRune(r):
-			self.Kind = TOKEN_ATOM
+			self.Type = ATOM
 		case IsDigitRune(r):
-			self.Kind = TOKEN_NUMBER
+			self.Type = NUMBER
 		default:
 			return false, &SyntaxError{fmt.Sprintf("Invalid Rune %c", r), Cursor{-1, -1}}
 		}
@@ -153,72 +158,72 @@ func (self *Token) ConsumeRune(r rune) (bool, *SyntaxError) {
 		return true, nil
 
 	// stage 2: token scan
-	case _TOKEN_SPACE:
+	case _SPACE:
 		if IsInlineWhitespaceRune(r) {
 			self.Value += string(r)
 			return true, nil
 		}
-	case _TOKEN_ONE_SLASH:
+	case _ONE_SLASH:
 		if r == '/' {
 			self.Value += string(r)
-			self.Kind = _TOKEN_COMMENT_SINGLE_LINE
+			self.Type = _COMMENT_SINGLE_LINE
 			return true, nil
 		}
 		if r == '*' {
 			self.Value += string(r)
-			self.Kind = _TOKEN_COMMENT_MULTI_LINE
+			self.Type = _COMMENT_MULTI_LINE
 			return true, nil
 		}
-	case _TOKEN_COMMENT_SINGLE_LINE:
+	case _COMMENT_SINGLE_LINE:
 		if r == '\n' {
-			self.Kind = TOKEN_COMMENT
+			self.Type = COMMENT
 			return false, nil
 		} else {
 			self.Value += string(r)
 			return true, nil
 		}
-	case _TOKEN_COMMENT_MULTI_LINE:
+	case _COMMENT_MULTI_LINE:
 		self.Value += string(r)
 		if r == '*' {
-			self.Kind = _TOKEN_COMMENT_MULTI_LINE_MAY_END
+			self.Type = _COMMENT_MULTI_LINE_MAY_END
 		}
 		return true, nil
-	case _TOKEN_COMMENT_MULTI_LINE_MAY_END:
+	case _COMMENT_MULTI_LINE_MAY_END:
 		switch r {
 		case '/':
-			self.Kind = TOKEN_COMMENT
+			self.Type = COMMENT
 		case '*':
-			self.Kind = _TOKEN_COMMENT_MULTI_LINE_MAY_END
+			self.Type = _COMMENT_MULTI_LINE_MAY_END
 		default:
-			self.Kind = _TOKEN_COMMENT_MULTI_LINE
+			self.Type = _COMMENT_MULTI_LINE
 		}
 		self.Value += string(r)
 		return true, nil
 
-	case _TOKEN_STRING_DOUBLE_QUOTE:
+	case _STRING_DOUBLE_QUOTE:
 		self.Value += string(r)
 		if r == '"' {
-			self.Kind = TOKEN_STRING
+			self.Type = STRING
 		}
 		return true, nil
 
-	case TOKEN_COMMENT:
+	case COMMENT:
 		return false, nil
-	case TOKEN_DELIMITER:
+	case DELIMITER:
 		return false, nil
-	case TOKEN_STRING:
+	case STRING:
 		return false, nil
-	case TOKEN_OPERATOR:
+	case OPERATOR:
 		if IsOperatorRune(r) {
 			self.Value += string(r)
 			return true, nil
 		}
-	case TOKEN_ATOM:
+	case ATOM:
 		if IsAtomRune(r) || IsDigitRune(r) {
 			self.Value += string(r)
 			return true, nil
 		}
-	case TOKEN_NUMBER:
+	case NUMBER:
 		if r == '.' || IsDigitRune(r) {
 			self.Value += string(r)
 			return true, nil
