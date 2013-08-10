@@ -1,4 +1,4 @@
-package jsparser
+package jaess
 
 import (
 	"bufio"
