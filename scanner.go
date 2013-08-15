@@ -3,6 +3,7 @@ package jaess
 import (
 	"fmt"
 	"io"
+	"bytes"
 )
 
 // a scanner of tokens
@@ -12,6 +13,7 @@ type TokenScanner struct {
 	Location  Cursor
 	lastToken *Token
 	unToken   *Token
+	capture   *SourceCapture
 	Trace     bool
 }
 
@@ -21,9 +23,18 @@ type Cursor struct {
 	column int
 }
 
+// used for capturing source blocks like functions
+type SourceCapture struct {
+	buf    bytes.Buffer
+	parent *SourceCapture
+}
+
 // creates a new token scanner
 func NewTokenScanner(input io.RuneScanner) *TokenScanner {
-	return &TokenScanner{input, 0, Cursor{0, 0}, nil, nil, false}
+	ts := new(TokenScanner)
+	ts.input = input
+	ts.Location = Cursor{0, 0}
+	return ts
 }
 
 func (self *Cursor) _IncrementByRune(r rune) {
@@ -33,6 +44,39 @@ func (self *Cursor) _IncrementByRune(r rune) {
 	} else {
 		self.column += 1
 	}
+}
+
+func (self *SourceCapture) WriteRune(r rune) {
+	_, err := self.buf.WriteRune(r)
+	if err != nil {
+		panic(err)
+	}
+	if self.parent != nil {
+		self.parent.WriteRune(r)
+	}
+}
+
+func (self SourceCapture) String() string {
+	return string(self.buf.Bytes())
+}
+
+// begins a capture of a source block
+func (self *TokenScanner) BeginCapture() {
+	sc := new(SourceCapture)
+	if self.capture != nil {
+		sc.parent = self.capture
+	}
+	self.capture = sc
+}
+
+// ends and returns a capture
+func (self *TokenScanner) FinishCapture() *SourceCapture {
+	sc := self.capture
+	if sc == nil {
+		panic(fmt.Errorf("cant finish capture before starting one"))
+	}
+	self.capture = sc.parent
+	return sc
 }
 
 // gets the next token available
@@ -62,24 +106,28 @@ func (self *TokenScanner) Next() (*Token, error) {
 			token.Location = self.Location
 		}
 
-		if ok, err := token.ConsumeRune(r); ok {
+		ok, sntxErr := token.ConsumeRune(r)
+		if sntxErr != nil {
+			sntxErr.Location = self.Location
+			return nil, sntxErr
+		}
+		if ok {
 			self.offset += int64(rlen)
 			self.Location._IncrementByRune(r)
-		} else {
-			self.input.UnreadRune()
-			if err != nil {
-				err.Location = self.Location
-				return nil, err
+			if self.capture != nil {
+				self.capture.WriteRune(r)
 			}
-			if _SPACE == token.Type {
-				token = nil
-			} else {
-				break
-			}
+			continue
 		}
+
+		self.input.UnreadRune()
+		if _SPACE != token.Type {
+			break
+		}
+		token = nil
 	}
 
-	// hack to correct type of single line comment at eof
+	// correct type of single line comment at eof
 	if token != nil && _COMMENT_SINGLE_LINE == token.Type {
 		token.Type = COMMENT
 	}

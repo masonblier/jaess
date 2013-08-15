@@ -2,7 +2,9 @@ package jaess
 
 import (
 	"fmt"
-	// "encoding/json"
+	// "io"
+	"bytes"
+	"encoding/json"
 )
 
 // an AstNode
@@ -19,6 +21,7 @@ const (
 	PROPERTY
 	PROGRAM
 	FUNCTION_DECLARATION
+	EMPTY_STATEMENT
 	BLOCK_STATEMENT
 	EXPRESSION_STATEMENT
 	ASSIGNMENT_EXPRESSION
@@ -33,57 +36,6 @@ const (
 	UNARY_EXPRESSION
 	BINARY_EXPRESSION
 )
-
-func (self AstType) String() string {
-	switch self {
-
-	case AST_UNKNOWN:
-		return "AstUnknown"
-	case LITERAL:
-		return "Literal"
-	case IDENTIFIER:
-		return "Identifier"
-	case PROPERTY:
-		return "Property"
-	case PROGRAM:
-		return "Program"
-	case FUNCTION_DECLARATION:
-		return "FunctionDeclaration"
-	case BLOCK_STATEMENT:
-		return "BlockStatement"
-	case EXPRESSION_STATEMENT:
-		return "ExpressionStatement"
-	case ASSIGNMENT_EXPRESSION:
-		return "AssignmentExpression"
-	case MEMBER_EXPRESSION:
-		return "MemberExpression"
-	case THIS_EXPRESSION:
-		return "ThisExpression"
-	case FUNCTION_EXPRESSION:
-		return "FunctionExpression"
-	case CALL_EXPRESSION:
-		return "CallExpression"
-	case VARIABLE_DECLARATION:
-		return "VariableDeclaration"
-	case VARIABLE_DECLARATOR:
-		return "VariableDeclarator"
-	case NEW_EXPRESSION:
-		return "NewExpression"
-	case OBJECT_EXPRESSION:
-		return "ObjectExpression"
-	case UNARY_EXPRESSION:
-		return "UnaryExpression"
-	case BINARY_EXPRESSION:
-		return "BinaryExpression"
-
-	}
-	return "<#error: bad value>"
-}
-
-func (self AstType) MarshalJSON() ([]byte, error) {
-	str := fmt.Sprintf("\"%s\"", self)
-	return []byte(str), nil
-}
 
 type LiteralString struct {
 	Type  AstType `json:"type"`
@@ -123,6 +75,11 @@ type FunctionDeclaration struct {
 	Rest       AstNode   `json:"rest"`
 	Generator  bool      `json:"generator"`
 	Expression bool      `json:"expression"`
+	Source     string 	 `json:"-"`
+}
+
+type EmptyStatement struct {
+	Type AstType   `json:"type"`
 }
 
 type BlockStatement struct {
@@ -162,6 +119,7 @@ type FunctionExpression struct {
 	Rest       AstNode   `json:"rest"`
 	Generator  bool      `json:"generator"`
 	Expression bool      `json:"expression"`
+	Source     string 	 `json:"-"`
 }
 
 type CallExpression struct {
@@ -205,4 +163,81 @@ type BinaryExpression struct {
 	Operator string  `json:"operator"`
 	Left     AstNode `json:"left"`
 	Right    AstNode `json:"right"`
+}
+
+
+func FormattedAstBuffer(ast AstNode) (*bytes.Buffer, error) {
+	jsonStr, err := json.Marshal(ast)
+	if err != nil {
+		return nil, err
+	}
+
+	var dst bytes.Buffer
+	err = json.Indent(&dst, jsonStr, "", "    ")
+	if err != nil {
+		return nil, err
+	}
+
+	return &dst, nil
+}
+
+func FormattedAstString(ast AstNode) string {
+	buf, err := FormattedAstBuffer(ast)
+	if err != nil {
+		panic(err)
+	}
+	return buf.String()
+}
+
+func (self AstType) MarshalJSON() ([]byte, error) {
+	str := fmt.Sprintf("\"%s\"", self)
+	return []byte(str), nil
+}
+
+func (self AstType) String() string {
+	switch self {
+
+	case AST_UNKNOWN:
+		return "AstUnknown"
+	case LITERAL:
+		return "Literal"
+	case IDENTIFIER:
+		return "Identifier"
+	case PROPERTY:
+		return "Property"
+	case PROGRAM:
+		return "Program"
+	case FUNCTION_DECLARATION:
+		return "FunctionDeclaration"
+	case EMPTY_STATEMENT:
+		return "EmptyStatement"
+	case BLOCK_STATEMENT:
+		return "BlockStatement"
+	case EXPRESSION_STATEMENT:
+		return "ExpressionStatement"
+	case ASSIGNMENT_EXPRESSION:
+		return "AssignmentExpression"
+	case MEMBER_EXPRESSION:
+		return "MemberExpression"
+	case THIS_EXPRESSION:
+		return "ThisExpression"
+	case FUNCTION_EXPRESSION:
+		return "FunctionExpression"
+	case CALL_EXPRESSION:
+		return "CallExpression"
+	case VARIABLE_DECLARATION:
+		return "VariableDeclaration"
+	case VARIABLE_DECLARATOR:
+		return "VariableDeclarator"
+	case NEW_EXPRESSION:
+		return "NewExpression"
+	case OBJECT_EXPRESSION:
+		return "ObjectExpression"
+	case UNARY_EXPRESSION:
+		return "UnaryExpression"
+	case BINARY_EXPRESSION:
+		return "BinaryExpression"
+
+	}
+	return "<#error: bad value>"
 }

@@ -13,7 +13,7 @@ type Parser struct {
 }
 
 // parses a string into an AstNode{type:Program,...}
-func parse(source string) (AstNode, error) {
+func Parse(source string) (AstNode, error) {
 	parser := NewParser(strings.NewReader(source))
 	return parser.Parse()
 }
@@ -68,6 +68,13 @@ func (self *Parser) parseStatement() (AstNode, error) {
 			continue
 		}
 		if token.Value == ";" {
+			self.scanner.UnNext()
+			node, err = self.parseEmptyStatement()
+			break
+		}
+		if token.Type == NUMBER || token.Type == STRING {
+			self.scanner.UnNext()
+			node, err = self.parseExpressionStatement()
 			break
 		}
 		if token.Type == ATOM {
@@ -112,6 +119,12 @@ func (self *Parser) parseStatement() (AstNode, error) {
 
 	return node, err
 
+}
+
+func (self *Parser) parseEmptyStatement() (AstNode, error) {
+	node := new(EmptyStatement)
+	node.Type = EMPTY_STATEMENT
+	return node, nil
 }
 
 // parses a BlockStatement from start
@@ -242,10 +255,13 @@ func (self *Parser) parseFunctionDeclaration() (AstNode, error) {
 	node.Params, err = self.parseParamList()
 	node.Defaults = []AstNode{}
 
+	self.scanner.BeginCapture()
 	node.Body, err = self.parseBlockStatement()
 	if err != nil {
 		return nil, err
 	}
+	capture := self.scanner.FinishCapture()
+	node.Source = _TrimFunctionSource(capture.String())
 
 	return node, nil
 }
@@ -278,6 +294,7 @@ func (self *Parser) parseVariableDeclaration() (AstNode, error) {
 			break
 		}
 		if token.Value == ";" {
+			self.scanner.UnNext()
 			break
 		}
 
@@ -551,10 +568,13 @@ func (self *Parser) parseFunctionExpression(token *Token) (AstNode, error) {
 	node.Params, err = self.parseParamList()
 	node.Defaults = []AstNode{}
 
+	self.scanner.BeginCapture()
 	node.Body, err = self.parseBlockStatement()
 	if err != nil {
 		return nil, err
 	}
+	capture := self.scanner.FinishCapture()
+	node.Source = _TrimFunctionSource(capture.String())
 
 	return node, nil
 }
@@ -807,12 +827,4 @@ func (self *Parser) parseLiteral(token *Token) (AstNode, error) {
 
 	perr := NewParseError("cannot parse LITERAL<<'%s'(%s)", token.Value, token.Type)
 	return nil, perr.SetLocation(token.Location)
-}
-
-func IsUnaryOperator(token *Token) bool {
-	switch token.Value {
-	case "-":
-		return true
-	}
-	return false
 }

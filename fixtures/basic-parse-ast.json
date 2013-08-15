@@ -2,6 +2,9 @@
     "type": "Program",
     "body": [
         {
+            "type": "EmptyStatement"
+        },
+        {
             "type": "ExpressionStatement",
             "expression": {
                 "type": "BinaryExpression",
