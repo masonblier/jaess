@@ -9,6 +9,7 @@ import (
 
 // an AstNode
 type AstNode interface {
+	AstType() AstType
 }
 
 // types of ast nodes
@@ -37,37 +38,41 @@ const (
 	BINARY_EXPRESSION
 )
 
-type LiteralString struct {
+type AstNodeMeta struct {
 	Type  AstType `json:"type"`
+}
+
+type LiteralString struct {
+	AstNodeMeta
 	Value string  `json:"value"`
 	Raw   string  `json:"raw"`
 }
 
 type LiteralNumber struct {
-	Type  AstType `json:"type"`
+	AstNodeMeta
 	Value float64 `json:"value"`
 	Raw   string  `json:"raw"`
 }
 
 type Identifier struct {
-	Type AstType `json:"type"`
+	AstNodeMeta
 	Name string  `json:"name"`
 }
 
 type Property struct {
-	Type  AstType `json:"type"`
+	AstNodeMeta
 	Key   AstNode `json:"key"`
 	Value AstNode `json:"value"`
 	Kind  string  `json:"kind"`
 }
 
 type Program struct {
-	Type AstType   `json:"type"`
+	AstNodeMeta
 	Body []AstNode `json:"body"`
 }
 
 type FunctionDeclaration struct {
-	Type       AstType   `json:"type"`
+	AstNodeMeta
 	Id         AstNode   `json:"id"`
 	Params     []AstNode `json:"params"`
 	Defaults   []AstNode `json:"defaults"`
@@ -79,39 +84,39 @@ type FunctionDeclaration struct {
 }
 
 type EmptyStatement struct {
-	Type AstType   `json:"type"`
+	AstNodeMeta
 }
 
 type BlockStatement struct {
-	Type AstType   `json:"type"`
+	AstNodeMeta
 	Body []AstNode `json:"body"`
 }
 
 type ExpressionStatement struct {
-	Type       AstType `json:"type"`
+	AstNodeMeta
 	Expression AstNode `json:"expression"`
 }
 
 type AssignmentExpression struct {
-	Type     AstType `json:"type"`
+	AstNodeMeta
 	Operator string  `json:"operator"`
 	Left     AstNode `json:"left"`
 	Right    AstNode `json:"right"`
 }
 
 type MemberExpression struct {
-	Type     AstType `json:"type"`
+	AstNodeMeta
 	Computed bool    `json:"computed"`
 	Object   AstNode `json:"object"`
 	Property AstNode `json:"property"`
 }
 
 type ThisExpression struct {
-	Type AstType `json:"type"`
+	AstNodeMeta
 }
 
 type FunctionExpression struct {
-	Type       AstType   `json:"type"`
+	AstNodeMeta
 	Id         AstNode   `json:"id"`
 	Params     []AstNode `json:"params"`
 	Defaults   []AstNode `json:"defaults"`
@@ -123,48 +128,51 @@ type FunctionExpression struct {
 }
 
 type CallExpression struct {
-	Type      AstType   `json:"type"`
+	AstNodeMeta
 	Callee    AstNode   `json:"callee"`
 	Arguments []AstNode `json:"arguments"`
 }
 
 type VariableDeclaration struct {
-	Type         AstType   `json:"type"`
+	AstNodeMeta
 	Declarations []AstNode `json:"declarations"`
 	Kind         string    `json:"kind"`
 }
 
 type VariableDeclarator struct {
-	Type AstType `json:"type"`
+	AstNodeMeta
 	Id   AstNode `json:"id"`
 	Init AstNode `json:"init"`
 }
 
 type NewExpression struct {
-	Type      AstType   `json:"type"`
+	AstNodeMeta
 	Callee    AstNode   `json:"callee"`
 	Arguments []AstNode `json:"arguments"`
 }
 
 type ObjectExpression struct {
-	Type       AstType   `json:"type"`
+	AstNodeMeta
 	Properties []AstNode `json:"properties"`
 }
 
 type UnaryExpression struct {
-	Type     AstType `json:"type"`
+	AstNodeMeta
 	Operator string  `json:"operator"`
 	Argument AstNode `json:"argument"`
 	Prefix   bool    `json:"prefix"`
 }
 
 type BinaryExpression struct {
-	Type     AstType `json:"type"`
+	AstNodeMeta
 	Operator string  `json:"operator"`
 	Left     AstNode `json:"left"`
 	Right    AstNode `json:"right"`
 }
 
+func (self AstNodeMeta) AstType() AstType {
+	return self.Type
+}
 
 func FormattedAstBuffer(ast AstNode) (*bytes.Buffer, error) {
 	jsonStr, err := json.Marshal(ast)

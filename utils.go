@@ -57,13 +57,28 @@ func IsUnaryOperator(token *Token) bool {
 
 // formats a block of source code to a function body
 func _TrimFunctionSource(s string) string {
-  bR, err := regexp.Compile(`^\s*\{\s*?\n`)
+  btR, err := regexp.Compile(`^\s*\{`)
   if err != nil {
     panic(err)
   }
-  eR, err := regexp.Compile(`[^\S\n]*\}\s*;?\s*$`)
+  if btR.MatchString(s) {
+    bR, err := regexp.Compile(`^\s*{\s*?\n?`)
+    if err != nil {
+      panic(err)
+    }
+    eR, err := regexp.Compile(`\s*}\s*;?\s*$`)
+    if err != nil {
+      panic(err)
+    }
+    return bR.ReplaceAllLiteralString(eR.ReplaceAllLiteralString(s, ""), "")
+  }
+  wspbR, err := regexp.Compile(`^\s*?\n?`)
   if err != nil {
     panic(err)
   }
-  return bR.ReplaceAllLiteralString(eR.ReplaceAllLiteralString(s, ""), "")
+  wspeR, err := regexp.Compile(`\s*$`)
+  if err != nil {
+    panic(err)
+  }
+  return wspbR.ReplaceAllLiteralString(wspeR.ReplaceAllLiteralString(s, ""), "")
 }

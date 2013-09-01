@@ -13,7 +13,7 @@ type Parser struct {
 }
 
 // parses a string into an AstNode{type:Program,...}
-func Parse(source string) (AstNode, error) {
+func Parse(source string) (*Program, error) {
 	parser := NewParser(strings.NewReader(source))
 	return parser.Parse()
 }
@@ -26,7 +26,7 @@ func NewParser(input io.RuneScanner) *Parser {
 }
 
 // parses into a full Ast
-func (self *Parser) Parse() (AstNode, error) {
+func (self *Parser) Parse() (*Program, error) {
 	node := new(Program)
 	node.Type = PROGRAM
 	for {
@@ -403,11 +403,18 @@ func (self *Parser) parseArgumentList() ([]AstNode, error) {
 
 // parses from the start of an expression
 func (self *Parser) parseExpression() (AstNode, error) {
+  return self.parseExpressionUntil([]string{})
+}
+
+// parses an expression until a match in an exclude list, or normal end of expression
+func (self *Parser) parseExpressionUntil(excludeList []string) (AstNode, error) {
 
 	var node AstNode
 
 	for {
 		token, err := self.scanner.Next()
+
+		// fmt.Printf("\x1b[90mparsing expr<<%s %+v\x1b[0m\n", token.Value, node)
 
 		if err != nil {
 			return nil, err
@@ -423,6 +430,16 @@ func (self *Parser) parseExpression() (AstNode, error) {
 		switch token.Type {
 		case NEWLINE, COMMENT:
 			continue
+		}
+
+		// hack for bin exprs todo fix
+		if node != nil {
+			for _, exC := range excludeList {
+				if exC == token.Value {
+					self.scanner.UnNext()
+					return node, nil
+				}
+			}
 		}
 
 		switch token.Value {
@@ -723,7 +740,13 @@ func (self *Parser) parseBinaryExpression(left AstNode, token *Token) (AstNode, 
 	node.Left = left
 	node.Operator = token.Value
 
-	right, err := self.parseExpression()
+	var right AstNode
+	var err error
+	if token.Value == "+" || token.Value == "-" {
+		right, err = self.parseExpressionUntil([]string{"+","-"})
+	} else {
+		right, err = self.parseExpressionUntil([]string{"+","-","*","/"})
+	}
 	if token == nil || err != nil {
 		return nil, err
 	}
@@ -739,7 +762,7 @@ func (self *Parser) parseUnaryExpression(token *Token) (AstNode, error) {
 	node.Prefix = true
 
 	var err error
-	node.Argument, err = self.parseExpression()
+	node.Argument, err = self.parseExpressionUntil([]string{"+","-","*","/"})
 	if err != nil {
 		return nil, err
 	}
