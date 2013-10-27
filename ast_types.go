@@ -25,6 +25,14 @@ const (
 	EMPTY_STATEMENT
 	BLOCK_STATEMENT
 	EXPRESSION_STATEMENT
+	// IF_STATEMENT
+	// LABELED_STATEMENT
+	// BREAK_STATEMENT
+	// CONTINUE_STATEMENT
+	// WITH_STATEMENT
+	// SWITCH_STATEMENT
+	RETURN_STATEMENT
+	// THROW_STATEMENT
 	ASSIGNMENT_EXPRESSION
 	MEMBER_EXPRESSION
 	THIS_EXPRESSION
@@ -95,6 +103,11 @@ type BlockStatement struct {
 type ExpressionStatement struct {
 	AstNodeMeta
 	Expression AstNode `json:"expression"`
+}
+
+type ReturnStatement struct {
+	AstNodeMeta
+	Argument AstNode `json:"argument"`
 }
 
 type AssignmentExpression struct {
@@ -223,6 +236,22 @@ func (self AstType) String() string {
 		return "BlockStatement"
 	case EXPRESSION_STATEMENT:
 		return "ExpressionStatement"
+	// case IF_STATEMENT:
+	// 	return "IfStatement"
+	// case LABELED_STATEMENT:
+	// 	return "LabeledStatement"
+	// case BREAK_STATEMENT:
+	// 	return "BreakStatement"
+	// case CONTINUE_STATEMENT:
+	// 	return "ContinueStatement"
+	// case WITH_STATEMENT:
+	// 	return "WithStatement"
+	// case SWITCH_STATEMENT:
+	// 	return "SwitchStatement"
+	case RETURN_STATEMENT:
+		return "ReturnStatement"
+	// case THROW_STATEMENT:
+	// 	return "ThrowStatement"
 	case ASSIGNMENT_EXPRESSION:
 		return "AssignmentExpression"
 	case MEMBER_EXPRESSION:

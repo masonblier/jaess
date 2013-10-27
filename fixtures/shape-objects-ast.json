@@ -476,6 +476,26 @@
                     }
                 ]
             }
+        },
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "UnaryExpression",
+                "operator": "delete",
+                "argument": {
+                    "type": "MemberExpression",
+                    "computed": false,
+                    "object": {
+                        "type": "Identifier",
+                        "name": "rect"
+                    },
+                    "property": {
+                        "type": "Identifier",
+                        "name": "x"
+                    }
+                },
+                "prefix": true
+            }
         }
     ]
 }

@@ -31,3 +31,5 @@ rect.move(3, -4);
 
 assert(rect.x === 2);
 assert(rect.y === 1);
+
+delete rect.x;

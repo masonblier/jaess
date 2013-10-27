@@ -72,7 +72,7 @@ func (self *Parser) parseStatement() (AstNode, error) {
 			node, err = self.parseEmptyStatement()
 			break
 		}
-		if token.Type == NUMBER || token.Type == STRING {
+		if token.Type == NUMBER || token.Type == STRING || token.Type == DELIMITER {
 			self.scanner.UnNext()
 			node, err = self.parseExpressionStatement()
 			break
@@ -81,6 +81,8 @@ func (self *Parser) parseStatement() (AstNode, error) {
 			self.scanner.UnNext()
 			if token.Value == "function" {
 				node, err = self.parseFunctionDeclaration()
+			} else if token.Value == "return" {
+				node, err = self.parseReturnStatement()
 			} else if token.Value == "var" {
 				node, err = self.parseVariableDeclaration()
 			} else {
@@ -175,7 +177,7 @@ func (self *Parser) parseBlockStatement() (AstNode, error) {
 			return nil, terr
 		}
 
-		if token == nil || token.Value == ";" {
+		if token == nil || token.Value == ";" || token.Value == ")" {
 			break
 		} else if token.Type == COMMENT {
 			_, _ = self.scanner.Next()
@@ -185,7 +187,8 @@ func (self *Parser) parseBlockStatement() (AstNode, error) {
 			break
 		} else {
 			perr := NewParseError("parser error: BLOCK_STATEMENT...\"%s\"(%s)", token.Value, token.Type)
-			return nil, perr.SetLocation(token.Location)
+			panic(perr.SetLocation(token.Location))
+			// return nil, perr.SetLocation(token.Location)
 		}
 	}
 
@@ -211,6 +214,28 @@ func (self *Parser) parseExpressionStatement() (AstNode, error) {
 		self.scanner.Next()
 	}
 
+	return node, nil
+}
+
+// parses and wraps an expression into a statement node
+func (self *Parser) parseReturnStatement() (AstNode, error) {
+	var err error
+
+	token, err := self.scanner.Next()
+	if token == nil || err != nil {
+		return nil, err
+	}
+	if token.Value != "return" {
+		err := NewParseError("cannot parse RETURN_STATEMENT<<%s:%s", token.Type, token.Value)
+		return nil, err.SetLocation(token.Location)
+	}
+
+	node := new(ReturnStatement)
+	node.Type = RETURN_STATEMENT
+	node.Argument, err = self.parseExpression()
+	if err != nil {
+		return nil, err
+	}
 	return node, nil
 }
 
@@ -527,6 +552,8 @@ func (self *Parser) parseExpressionUntil(excludeList []string) (AstNode, error) 
 					node, err = self.parseNewExpression(token)
 				case "function":
 					node, err = self.parseFunctionExpression(token)
+				case "delete":
+					node, err = self.parseUnaryExpression(token)
 				case "instanceof":
 				default:
 					node, err = self.parseIdentifier(token)

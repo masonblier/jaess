@@ -88,7 +88,7 @@ func (self *TestWrapper) AssertEqualLines(expected *bufio.Reader, actual *bufio.
 				line, err := actual.ReadString('\n')
 				if err == nil {
 					line = strings.TrimRight(line, "\n")
-					fmt.Printf("\x1b[31m-%3d %s\x1b[0m\n", i+j, line)
+					fmt.Printf("\x1b[91m-%3d %s\x1b[0m\n", i+j, line)
 				}
 			}
 			self.Assert(false, "see diff")
@@ -106,19 +106,36 @@ func (self *TestWrapper) AssertEqualLines(expected *bufio.Reader, actual *bufio.
 		}
 	}
 
-	// last check: expected has more lines
+	j := i
+	// last check: print remaining lines
+	if self.Trace {
+		for {
+			line, err := actual.ReadString('\n')
+			if err == nil || (len(line) > 0 && err == io.EOF) {
+				is_fail = true
+				line = strings.TrimRight(line, "\n")
+				fmt.Printf("\x1b[31m-%3d %s\x1b[0m\n", j, line)
+			}
+			if err != nil {
+				break
+			}
+			j++
+		}
+	}
 	for {
+		i++
 		line, err := expected.ReadString('\n')
 		if err == nil || (len(line) > 0 && err == io.EOF) {
 			is_fail = true
 			line = strings.TrimRight(line, "\n")
-			fmt.Printf("\x1b[90m+%3d %s\x1b[0m\n", i, line)
+			fmt.Printf("\x1b[32m+%3d %s\x1b[0m\n", i, line)
 		}
 		if err != nil {
 			break
 		}
-		i++
 	}
+
+
 	if is_fail {
 		self.Assert(false, "see diff")
 	}
