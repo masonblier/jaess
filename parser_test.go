@@ -25,9 +25,15 @@ func TestParseNegatives(raw_t *testing.T) {
 	_RunParserTest("negatives", t)
 }
 
+func TestArrays(raw_t *testing.T) {
+	t := NewTestWrapper(raw_t)
+	// t.Trace = true
+	_RunParserTest("arrays", t)
+}
+
 func TestParseShapeObjects(raw_t *testing.T) {
 	t := NewTestWrapper(raw_t)
-	t.Trace = true
+	// t.Trace = true
 	_RunParserTest("shape-objects", t)
 }
 

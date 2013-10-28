@@ -25,7 +25,8 @@ const (
 	EMPTY_STATEMENT
 	BLOCK_STATEMENT
 	EXPRESSION_STATEMENT
-	// IF_STATEMENT
+	IF_STATEMENT
+	FOR_STATEMENT
 	// LABELED_STATEMENT
 	// BREAK_STATEMENT
 	// CONTINUE_STATEMENT
@@ -41,13 +42,21 @@ const (
 	VARIABLE_DECLARATION
 	VARIABLE_DECLARATOR
 	NEW_EXPRESSION
+	ARRAY_EXPRESSION
 	OBJECT_EXPRESSION
 	UNARY_EXPRESSION
 	BINARY_EXPRESSION
+	UPDATE_EXPRESSION
 )
 
 type AstNodeMeta struct {
 	Type  AstType `json:"type"`
+}
+
+type LiteralNull struct {
+	AstNodeMeta
+	Value interface{}  `json:"value"`
+	Raw   string  `json:"raw"`
 }
 
 type LiteralString struct {
@@ -103,6 +112,21 @@ type BlockStatement struct {
 type ExpressionStatement struct {
 	AstNodeMeta
 	Expression AstNode `json:"expression"`
+}
+
+type IfStatement struct {
+	AstNodeMeta
+	Test AstNode `json:"test"`
+	Consequent AstNode `json:"consequent"`
+	Alternate AstNode `json:"alternate"`
+}
+
+type ForStatement struct {
+	AstNodeMeta
+	Init AstNode `json:"init"`
+	Test AstNode `json:"test"`
+	Update AstNode `json:"update"`
+	Body AstNode `json:"body"`
 }
 
 type ReturnStatement struct {
@@ -164,6 +188,11 @@ type NewExpression struct {
 	Arguments []AstNode `json:"arguments"`
 }
 
+type ArrayExpression struct {
+	AstNodeMeta
+	Elements []AstNode `json:"elements"`
+}
+
 type ObjectExpression struct {
 	AstNodeMeta
 	Properties []AstNode `json:"properties"`
@@ -181,6 +210,13 @@ type BinaryExpression struct {
 	Operator string  `json:"operator"`
 	Left     AstNode `json:"left"`
 	Right    AstNode `json:"right"`
+}
+
+type UpdateExpression struct {
+	AstNodeMeta
+	Operator string `json:"operator"`
+	Argument AstNode `json:"argument"`
+	Prefix bool `json:"prefix"`
 }
 
 func (self AstNodeMeta) AstType() AstType {
@@ -236,8 +272,10 @@ func (self AstType) String() string {
 		return "BlockStatement"
 	case EXPRESSION_STATEMENT:
 		return "ExpressionStatement"
-	// case IF_STATEMENT:
-	// 	return "IfStatement"
+	case IF_STATEMENT:
+		return "IfStatement"
+	case FOR_STATEMENT:
+		return "ForStatement"
 	// case LABELED_STATEMENT:
 	// 	return "LabeledStatement"
 	// case BREAK_STATEMENT:
@@ -268,12 +306,16 @@ func (self AstType) String() string {
 		return "VariableDeclarator"
 	case NEW_EXPRESSION:
 		return "NewExpression"
+	case ARRAY_EXPRESSION:
+		return "ArrayExpression"
 	case OBJECT_EXPRESSION:
 		return "ObjectExpression"
 	case UNARY_EXPRESSION:
 		return "UnaryExpression"
 	case BINARY_EXPRESSION:
 		return "BinaryExpression"
+	case UPDATE_EXPRESSION:
+		return "UpdateExpression"
 
 	}
 	return "<#error: bad value>"

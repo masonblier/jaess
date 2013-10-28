@@ -72,6 +72,16 @@ func (self *Parser) parseStatement() (AstNode, error) {
 			node, err = self.parseEmptyStatement()
 			break
 		}
+		if token.Value == "if" {
+			self.scanner.UnNext()
+			node, err = self.parseIfStatement()
+			break
+		}
+		if token.Value == "for" {
+			self.scanner.UnNext()
+			node, err = self.parseForStatement()
+			break
+		}
 		if token.Type == NUMBER || token.Type == STRING || token.Type == DELIMITER {
 			self.scanner.UnNext()
 			node, err = self.parseExpressionStatement()
@@ -88,14 +98,18 @@ func (self *Parser) parseStatement() (AstNode, error) {
 			} else {
 				node, err = self.parseExpressionStatement()
 			}
-			if err != nil {
-				return nil, err
-			}
 			break
 		}
 
 		perr := NewParseError("parser error \"%s\"(%s)", token.Value, token.Type).SetLocation(token.Location)
 		panic(perr) // return nil,
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	if node == nil {
+		return nil, NewParseError("parser error nil -- \"%s\"(%s)", token.Value, token.Type).SetLocation(token.Location)
 	}
 
 	for {
@@ -112,10 +126,12 @@ func (self *Parser) parseStatement() (AstNode, error) {
 		} else if token.Value == ";" || token.Value == "\n" {
 			_, _ = self.scanner.Next()
 			break
+	  } else if token.Value == "}" {
+	  	break
 		} else {
-			perr := NewParseError("parser error: STATEMENT...\"%s\"(%s)", token.Value, token.Type)
-			// return nil, perr.SetLocation(token.Location)
+			perr := NewParseError("parser error: %s...\"%s\"(%s)", node.AstType(), token.Value, token.Type)
 			panic(perr.SetLocation(token.Location))
+			// return nil, perr.SetLocation(token.Location)
 		}
 	}
 
@@ -217,7 +233,119 @@ func (self *Parser) parseExpressionStatement() (AstNode, error) {
 	return node, nil
 }
 
-// parses and wraps an expression into a statement node
+// parses if statemetn
+func (self *Parser) parseIfStatement() (AstNode, error) {
+	node := new(IfStatement)
+	node.Type = IF_STATEMENT
+
+	token, err := self.scanner.Next()
+	if err != nil {
+		return nil, err
+	}
+	if token.Value != "if" {
+		err := NewParseError("cannot parse IF_STATEMENT<<%s", token.Value)
+		return nil, err.SetLocation(token.Location)
+	}
+
+	token, err = self.scanner.Next()
+	if err != nil {
+		return nil, err
+	}
+	if token.Value != "(" {
+		err := NewParseError("cannot parse IF_STATEMENT<<if %s", token.Value)
+		return nil, err.SetLocation(token.Location)
+	}
+
+	node.Test, err = self.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	token, err = self.scanner.Next()
+	if err != nil {
+		return nil, err
+	}
+	if token.Value != ")" {
+		err := NewParseError("cannot parse IF_STATEMENT<<(...%s", token.Value)
+		return nil, err.SetLocation(token.Location)
+	}
+
+	node.Consequent, err = self.parseBlockStatement()
+	if err != nil {
+		return nil, err
+	}
+
+	return node, nil
+}
+
+// parses for statement
+func (self *Parser) parseForStatement() (AstNode, error) {
+	node := new(ForStatement)
+	node.Type = FOR_STATEMENT
+
+	token, err := self.scanner.Next()
+	if err != nil {
+		return nil, err
+	}
+	if token.Value != "for" {
+		err := NewParseError("cannot parse FOR_STATEMENT<<%s", token.Value)
+		return nil, err.SetLocation(token.Location)
+	}
+
+	token, err = self.scanner.Next()
+	if err != nil {
+		return nil, err
+	}
+	if token.Value != "(" {
+		err := NewParseError("cannot parse FOR_STATEMENT<<for %s", token.Value)
+		return nil, err.SetLocation(token.Location)
+	}
+
+	node.Init, err = self.parseStatement()
+	if err != nil {
+		return nil, err
+	}
+
+	token, err = self.scanner.Peek()
+	if err != nil {
+		return nil, err
+	}
+	if token.Value != ")" {
+		node.Test, err = self.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+
+		token, err = self.scanner.Next()
+		if err != nil {
+			return nil, err
+		}
+		if token.Value != ")" {
+			node.Update, err = self.parseExpression()
+			if err != nil {
+				return nil, err
+			}
+			token, err = self.scanner.Next()
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if token.Value != ")" {
+		err := NewParseError("cannot parse FOR_STATEMENT<<(...;...; %s", token.Value)
+		return nil, err.SetLocation(token.Location)
+	}
+
+	node.Body, err = self.parseBlockStatement()
+	if err != nil {
+		return nil, err
+	}
+
+	return node, nil
+}
+
+// parses return statement
 func (self *Parser) parseReturnStatement() (AstNode, error) {
 	var err error
 
@@ -435,9 +563,11 @@ func (self *Parser) parseExpression() (AstNode, error) {
 func (self *Parser) parseExpressionUntil(excludeList []string) (AstNode, error) {
 
 	var node AstNode
+	var err error
 
 	for {
-		token, err := self.scanner.Next()
+		var token *Token
+		token, err = self.scanner.Next()
 
 		// fmt.Printf("\x1b[90mparsing expr<<%s %+v\x1b[0m\n", token.Value, node)
 
@@ -468,14 +598,18 @@ func (self *Parser) parseExpressionUntil(excludeList []string) (AstNode, error) 
 		}
 
 		switch token.Value {
-		case ";", ")", ",", ":", "}":
+		case ";", ")", ",", ":", "}", "]":
 			self.scanner.UnNext()
 			return node, nil
-		case "(":
-			if node != nil {
-				node, err = self.parseCallExpression(node)
-			} else {
+		}
+
+		if node == nil {
+			switch token.Value {
+			case "(":
 				node, err = self.parseExpression()
+				if err != nil {
+					return nil, err
+				}
 				token, nerr := self.scanner.Next()
 				if nerr != nil {
 					return nil, err
@@ -484,26 +618,76 @@ func (self *Parser) parseExpressionUntil(excludeList []string) (AstNode, error) 
 					perr := NewParseError("cannot parse (EXPRESSION...<<\"%s\"(%s)", token.Value, token.Type)
 					return nil, perr.SetLocation(token.Location)
 				}
+				continue
+			case "{":
+				node, err = self.parseObjectExpression(token)
+				if err != nil {
+					return nil, err
+				}
+				continue
+			case "[":
+				node, err = self.parseArrayExpression(token)
+				if err != nil {
+					return nil, err
+				}
+				continue
 			}
-			if err != nil {
-				return nil, err
-			}
-			continue
-		}
 
-		if token.Value == "{" {
-			if node != nil {
-				perr := NewParseError("cannot parse (EXPRESSION...<<\"%s\"(%s)", token.Value, token.Type)
-				return nil, perr.SetLocation(token.Location)
+			switch token.Type {
+			case NUMBER:
+				node, err = self.parseLiteral(token)
+				continue
+			case STRING:
+				node, err = self.parseLiteral(token)
+				continue
+			case OPERATOR:
+				if token.Value == "++" || token.Value == "--" {
+					node, err = self.parseUpdateExpression(token)
+					continue
+				}
+				if IsUnaryOperator(token) {
+					node, err = self.parseUnaryExpression(token)
+					continue
+				}
+			case ATOM:
+				switch token.Value {
+				case "null":
+					node, err = self.parseLiteral(token)
+				case "this":
+					node, err = self.parseThisExpression(token)
+				case "new":
+					node, err = self.parseNewExpression(token)
+				case "function":
+					node, err = self.parseFunctionExpression(token)
+				case "delete":
+					node, err = self.parseUnaryExpression(token)
+				case "instanceof":
+				default:
+					node, err = self.parseIdentifier(token)
+				}
+				if err != nil {
+					return nil, err
+				}
+				continue
 			}
-			node, err = self.parseObjectExpression(token)
-			if err != nil {
-				return nil, err
-			}
-			continue
-		}
 
-		if node != nil {
+		} else {
+			switch token.Value {
+			case "(":
+				node, err = self.parseCallExpression(node)
+				if err != nil {
+					return nil, err
+				}
+				continue
+			case "[":
+				self.scanner.UnNext()
+				node, err = self.parseMemberExpression(node)
+				if err != nil {
+					return nil, err
+				}
+				continue
+			}
+
 			switch token.Type {
 			case STRING, NUMBER:
 				self.scanner.UnNext()
@@ -511,6 +695,9 @@ func (self *Parser) parseExpressionUntil(excludeList []string) (AstNode, error) 
 			case ATOM:
 				if token.Value == "instanceof" {
 					node, err = self.parseBinaryExpression(node, token)
+					if err != nil {
+						return nil, err
+					}
 					continue
 				}
 				self.scanner.UnNext()
@@ -531,41 +718,14 @@ func (self *Parser) parseExpressionUntil(excludeList []string) (AstNode, error) 
 				}
 				continue
 			}
-		} else {
-			switch token.Type {
-			case NUMBER:
-				node, err = self.parseLiteral(token)
-				continue
-			case STRING:
-				node, err = self.parseLiteral(token)
-				continue
-			case OPERATOR:
-				if IsUnaryOperator(token) {
-					node, err = self.parseUnaryExpression(token)
-					continue
-				}
-			case ATOM:
-				switch token.Value {
-				case "this":
-					node, err = self.parseThisExpression(token)
-				case "new":
-					node, err = self.parseNewExpression(token)
-				case "function":
-					node, err = self.parseFunctionExpression(token)
-				case "delete":
-					node, err = self.parseUnaryExpression(token)
-				case "instanceof":
-				default:
-					node, err = self.parseIdentifier(token)
-				}
-				if err != nil {
-					return nil, err
-				}
-				continue
-			}
 		}
 
-		perr := NewParseError("cannot parse EXPRESSION<<'%s'(%s)", token.Value, token.Type)
+		var perr *ParseError
+		if node != nil {
+			perr = NewParseError("cannot parse (EXPRESSION...<<\"%s\"(%s)", token.Value, token.Type)
+		} else {
+			perr = NewParseError("cannot parse EXPRESSION<<'%s'(%s)", token.Value, token.Type)
+		}
 		// return nil, perr.SetLocation(token.Location)
 		panic(perr.SetLocation(token.Location))
 	}
@@ -690,6 +850,53 @@ func (self *Parser) parseObjectExpression(token *Token) (AstNode, error) {
 	return node, nil
 }
 
+// finishes parsing an array expression
+func (self *Parser) parseArrayExpression(token *Token) (AstNode, error) {
+	if token.Value != "[" {
+		err := NewParseError("cannot parse ARRAY_EXPRESSION<<'%s'(%s)", token.Value, token.Type)
+		return nil, err.SetLocation(token.Location)
+	}
+
+	node := new(ArrayExpression)
+	node.Type = ARRAY_EXPRESSION
+
+	for {
+		nextNode, err := self.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+		node.Elements = append(node.Elements, nextNode)
+
+		var token *Token
+		for {
+			token, err = self.scanner.Next()
+			if err != nil {
+				return nil, err
+			}
+			if token == nil {
+				err := NewParseError("cannot parse ARRAY_EXPRESSION<<[EOF")
+				return nil, err.SetLocation(self.scanner.Location)
+			}
+			if token.Value != "\n" {
+				break
+			}
+		}
+
+		if token.Value == "]" {
+			break
+		}
+		switch token.Value {
+		case ",":
+			continue
+		}
+
+		perr := NewParseError("cannot parse ARRAY_EXPRESSION<<[...%s", token.Value)
+		return nil, perr.SetLocation(self.scanner.Location)
+	}
+
+	return node, nil
+}
+
 // finishes parsing a call expression
 func (self *Parser) parseCallExpression(left AstNode) (AstNode, error) {
 	node := new(CallExpression)
@@ -744,6 +951,7 @@ func (self *Parser) parseMemberExpression(left AstNode) (AstNode, error) {
 
 	switch token.Value {
 	case ".":
+		node.Computed = false
 		token, err = self.scanner.Next()
 		if token == nil || err != nil {
 			return nil, err
@@ -754,9 +962,24 @@ func (self *Parser) parseMemberExpression(left AstNode) (AstNode, error) {
 		}
 		node.Property = right
 		return node, nil
+	case "[":
+		node.Computed = true
+		right, err := self.parseExpression()
+		if right == nil || err != nil {
+			return nil, err
+		}
+		node.Property = right
+		token, err = self.scanner.Next()
+		if err != nil {
+			return nil, err
+		}
+		if token.Value != "]" {
+			return nil, NewParseError("cannot parse MEMBER_EXPRESSION<<[...%s", token.Value).SetLocation(token.Location)
+		}
+		return node, nil
 	}
 
-	perr := NewParseError("cannot parse MEMBER_EXPRESSION<<'%s'(%s)", token.Value, token.Type)
+	perr := NewParseError("cannot parse MEMBER_EXPRESSION<<%s", token.Value)
 	return nil, perr.SetLocation(token.Location)
 }
 
@@ -785,6 +1008,22 @@ func (self *Parser) parseBinaryExpression(left AstNode, token *Token) (AstNode, 
 func (self *Parser) parseUnaryExpression(token *Token) (AstNode, error) {
 	node := new(UnaryExpression)
 	node.Type = UNARY_EXPRESSION
+	node.Operator = token.Value
+	node.Prefix = true
+
+	var err error
+	node.Argument, err = self.parseExpressionUntil([]string{"+","-","*","/"})
+	if err != nil {
+		return nil, err
+	}
+
+	return node, nil
+}
+
+// finishes parsing a unary expression given an operator token
+func (self *Parser) parseUpdateExpression(token *Token) (AstNode, error) {
+	node := new(UpdateExpression)
+	node.Type = UPDATE_EXPRESSION
 	node.Operator = token.Value
 	node.Prefix = true
 
@@ -854,6 +1093,14 @@ func (self *Parser) parseIdentifier(token *Token) (AstNode, error) {
 
 // finishes parsing a literal given a token
 func (self *Parser) parseLiteral(token *Token) (AstNode, error) {
+
+	if token.Value == "null" {
+		node := new(LiteralNull)
+		node.Type = LITERAL
+		node.Value = nil
+		node.Raw = token.Value
+		return node, nil
+	}
 
 	switch token.Type {
 	case STRING:

@@ -1,0 +1,143 @@
+{
+    "type": "Program",
+    "body": [
+        {
+            "type": "VariableDeclaration",
+            "declarations": [
+                {
+                    "type": "VariableDeclarator",
+                    "id": {
+                        "type": "Identifier",
+                        "name": "a"
+                    },
+                    "init": {
+                        "type": "ArrayExpression",
+                        "elements": [
+                            {
+                                "type": "Literal",
+                                "value": 1,
+                                "raw": "1"
+                            },
+                            {
+                                "type": "Literal",
+                                "value": null,
+                                "raw": "null"
+                            },
+                            {
+                                "type": "Literal",
+                                "value": 3,
+                                "raw": "3"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "kind": "var"
+        },
+        {
+            "type": "ForStatement",
+            "init": {
+                "type": "VariableDeclaration",
+                "declarations": [
+                    {
+                        "type": "VariableDeclarator",
+                        "id": {
+                            "type": "Identifier",
+                            "name": "i"
+                        },
+                        "init": {
+                            "type": "Literal",
+                            "value": 0,
+                            "raw": "0"
+                        }
+                    }
+                ],
+                "kind": "var"
+            },
+            "test": {
+                "type": "BinaryExpression",
+                "operator": "\u003c",
+                "left": {
+                    "type": "Identifier",
+                    "name": "i"
+                },
+                "right": {
+                    "type": "Literal",
+                    "value": 3,
+                    "raw": "3"
+                }
+            },
+            "update": {
+                "type": "UpdateExpression",
+                "operator": "++",
+                "argument": {
+                    "type": "Identifier",
+                    "name": "i"
+                },
+                "prefix": true
+            },
+            "body": {
+                "type": "BlockStatement",
+                "body": [
+                    {
+                        "type": "IfStatement",
+                        "test": {
+                            "type": "BinaryExpression",
+                            "operator": "!==",
+                            "left": {
+                                "type": "MemberExpression",
+                                "computed": true,
+                                "object": {
+                                    "type": "Identifier",
+                                    "name": "a"
+                                },
+                                "property": {
+                                    "type": "Identifier",
+                                    "name": "i"
+                                }
+                            },
+                            "right": {
+                                "type": "Identifier",
+                                "name": "undefined"
+                            }
+                        },
+                        "consequent": {
+                            "type": "BlockStatement",
+                            "body": [
+                                {
+                                    "type": "ExpressionStatement",
+                                    "expression": {
+                                        "type": "UnaryExpression",
+                                        "operator": "delete",
+                                        "argument": {
+                                            "type": "Identifier",
+                                            "name": "a"
+                                        },
+                                        "prefix": true
+                                    }
+                                }
+                            ]
+                        },
+                        "alternate": null
+                    }
+                ]
+            }
+        },
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "MemberExpression",
+                "computed": true,
+                "object": {
+                    "type": "Identifier",
+                    "name": "a"
+                },
+                "property": {
+                    "type": "Literal",
+                    "value": 2,
+                    "raw": "2"
+                }
+            }
+        }
+    ]
+}

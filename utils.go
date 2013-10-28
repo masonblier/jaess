@@ -49,7 +49,7 @@ func IsAtomRune(r rune) bool {
 // unary operator token
 func IsUnaryOperator(token *Token) bool {
   switch token.Value {
-  case "-":
+  case "-", "++", "--":
     return true
   }
   return false
