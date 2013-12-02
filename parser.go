@@ -865,7 +865,9 @@ func (self *Parser) parseArrayExpression(token *Token) (AstNode, error) {
 		if err != nil {
 			return nil, err
 		}
-		node.Elements = append(node.Elements, nextNode)
+		if nextNode != nil {
+			node.Elements = append(node.Elements, nextNode)
+		}
 
 		var token *Token
 		for {
